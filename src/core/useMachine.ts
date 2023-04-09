@@ -21,9 +21,6 @@ const isDifferentStateShallow = <S extends StateShape>(
   return isDifferentObjShallow(s1, s2);
 };
 
-// TODO: minimize the number of re-renders. The returned object has two properties:
-// - current state: this reference should be updated only after the reducer is called, and the state has changed (shallow comp)
-// - send: this function should never be re-created, because in theory it doesn't depend on anything.
 // TODO: by default the effect's result should be discarded if the state changed in the meantime.
 export const useMachine = <
   S extends StateShape,

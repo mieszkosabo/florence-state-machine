@@ -86,7 +86,6 @@ describe("useMachine", () => {
       useEffect(() => {
         // count number of re-renders
         fn();
-        console.log("RERENDER");
       }, [state, send]);
 
       return (
