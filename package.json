@@ -6,7 +6,12 @@
   "module": "dist/florence-state-machine.esm.js",
   "scripts": {
     "build": "preconstruct build",
-    "lint": "eslint ."
+    "check:types": "tsc --noEmit --pretty",
+    "check:lint": "eslint .",
+    "check:all": "pnpm check:types && pnpm check:lint",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "prepublishOnly": "preconstruct build"
   },
   "keywords": [],
   "author": "Mieszko Sabo",
@@ -16,9 +21,22 @@
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.21.4",
     "@preconstruct/cli": "^2.4.4",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/react": "^18.0.33",
+    "@types/testing-library__jest-dom": "^5.14.5",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
+    "@vitejs/plugin-react": "^3.1.0",
     "eslint": "^8.38.0",
-    "typescript": "^5.0.4"
+    "jsdom": "^21.1.1",
+    "typescript": "^5.0.4",
+    "vite": "^4.2.1",
+    "vitest": "^0.30.0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "rxjs": "^7.8.0"
   }
 }

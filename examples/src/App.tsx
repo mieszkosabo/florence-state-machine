@@ -1,10 +1,8 @@
-import { hello } from "florence-state-machine";
-
 function App() {
   return (
     <div className="App">
       <div>
-        <p>{hello()}</p>
+        <p>TODO</p>
       </div>
     </div>
   );
