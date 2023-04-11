@@ -110,16 +110,17 @@ describe("useMachine", () => {
     }
 
     const { findByTestId } = render(<App />);
+    const input = await findByTestId("input");
+    const button = await findByTestId("button");
+    const state = await findByTestId("state");
 
-    expect((await findByTestId("state")).textContent).toBe("idle");
+    expect(state.textContent).toBe("idle");
 
-    await user.type(await findByTestId("input"), "admin");
-    await user.click(await findByTestId("button"));
+    await user.type(input, "admin");
+    await user.click(button);
 
-    expect((await findByTestId("state")).textContent).toBe("loading");
-    await waitFor(async () =>
-      expect((await findByTestId("state")).textContent).toBe("success")
-    );
+    expect(state.textContent).toBe("loading");
+    await waitFor(() => expect(state.textContent).toBe("success"));
 
     expect(fn).toHaveBeenCalledTimes(8);
   });
@@ -177,15 +178,17 @@ describe("useMachine", () => {
     }
 
     const { findByTestId } = render(<App />);
+    const pingButton = await findByTestId("button-ping");
+    const pongButton = await findByTestId("button-pong");
 
-    await user.click(await findByTestId("button-pong"));
-    await user.click(await findByTestId("button-ping"));
-    await user.click(await findByTestId("button-pong"));
+    await user.click(pongButton);
+    await user.click(pingButton);
+    await user.click(pongButton);
 
     expect(fn).toHaveBeenCalledTimes(4);
 
     // fire event that doesn't change the state
-    await user.click(await findByTestId("button-pong"));
+    await user.click(pongButton);
     expect(fn).toHaveBeenCalledTimes(4);
   });
 
