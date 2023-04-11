@@ -128,11 +128,21 @@ describe("useMachine", () => {
     type Action = { type: "ping" } | { type: "pong" };
     type State = { name: "ping" } | { name: "pong" };
     const reducer: Reducer<State, Action> = (state, action) => {
-      switch (action.type) {
+      switch (state.name) {
         case "ping":
-          return { name: "ping" };
+          switch (action.type) {
+            case "pong":
+              return { name: "pong" };
+            default:
+              return state;
+          }
         case "pong":
-          return { name: "pong" };
+          switch (action.type) {
+            case "ping":
+              return { name: "ping" };
+            default:
+              return state;
+          }
         default:
           return state;
       }
