@@ -1,11 +1,7 @@
+import { UsePromiseExample } from "./examples/UsePromiseExample";
+
 function App() {
-  return (
-    <div className="App">
-      <div>
-        <p>TODO</p>
-      </div>
-    </div>
-  );
+  return <UsePromiseExample />;
 }
 
 export default App;

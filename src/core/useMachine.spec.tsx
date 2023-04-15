@@ -5,19 +5,19 @@ import { useMachine } from "./useMachine";
 import { render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-type Action =
+export type Action =
   | { type: "inputChange"; payload: string }
   | { type: "loginRequest" }
   | { type: "loginSuccess" }
   | { type: "loginError"; payload: { message: string } };
 
-type State =
+export type State =
   | { name: "idle" }
   | { name: "loading" }
   | { name: "error"; message: string }
   | { name: "success" };
 
-type Context = {
+export type Context = {
   username: string;
 };
 
