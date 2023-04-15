@@ -221,7 +221,7 @@ describe("useMachine", () => {
           name: "default",
         } as const,
         { counter: 0 }
-      ); // FIXME: check if you dont have to write as const
+      );
 
       return (
         <div>
