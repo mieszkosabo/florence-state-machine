@@ -11,7 +11,7 @@ const echo = (value: string): Promise<string> =>
 export const UsePromiseExample = () => {
   const [text, setText] = useState("hello");
   const { state, matches, cancel, start } = usePromise(() => echo(text), {
-    autoInvoke: false,
+    autoInvoke: true,
   });
 
   console.log("state: ", state);

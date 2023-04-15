@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Reducer, useMachine } from "../core";
 
 type State<Value> =
@@ -98,33 +98,22 @@ type Matches<V> = (
   >
 ) => JSX.Element | null;
 
-export function usePromise<V>(promise: () => Promise<V>): {
-  state: State<V>;
-  cancel: () => void;
-  matches: Matches<V>;
-};
 export function usePromise<V>(
   promise: () => Promise<V>,
-  config: { autoInvoke: false }
+  config = { autoInvoke: true }
 ): {
   state: State<V>;
   start: () => void;
   cancel: () => void;
   matches: Matches<V>;
-};
-
-export function usePromise<V>(
-  promise: () => Promise<V>,
-  config = { autoInvoke: true }
-):
-  | {
-      state: State<V>;
-      start: () => void;
-      cancel: () => void;
-      matches: Matches<V>;
-    }
-  | { state: State<V>; cancel: () => void; matches: Matches<V> } {
+} {
   const { state, send } = useMachine(reducer(promise), { name: "idle" });
+
+  useEffect(() => {
+    if (config.autoInvoke) {
+      send({ type: "start" });
+    }
+  }, []);
 
   const start = useCallback(() => {
     send({ type: "start" });
@@ -147,14 +136,6 @@ export function usePromise<V>(
     },
     [state.name]
   );
-
-  if (config.autoInvoke) {
-    return {
-      state,
-      cancel,
-      matches,
-    };
-  }
 
   return {
     state,
