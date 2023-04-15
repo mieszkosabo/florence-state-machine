@@ -361,4 +361,51 @@ describe("useMachine", () => {
     await sleep(25);
     expect(state.textContent).toBe("idle");
   });
+
+  it("matches", async () => {
+    function App() {
+      const { state, send, matches } = useMachine(reducer, {
+        name: "idle",
+      });
+
+      return (
+        <div>
+          <div data-testid="state">{state.name}</div>
+          {matches({
+            idle: () => <div data-testid="idle">idle</div>,
+            error: () => <div data-testid="error">error</div>,
+            loading: () => <div data-testid="loading">loading</div>,
+            success: () => <div data-testid="success">success</div>,
+          })}
+          <input
+            data-testid="input"
+            onChange={(e) =>
+              send({ type: "inputChange", payload: e.target.value })
+            }
+          />
+          <button
+            data-testid="button"
+            onClick={() => send({ type: "loginRequest" })}
+          >
+            Login
+          </button>
+        </div>
+      );
+    }
+
+    const { findByTestId } = render(<App />);
+    const input = await findByTestId("input");
+    const button = await findByTestId("button");
+    const state = await findByTestId("state");
+
+    expect(state.textContent).toBe("idle");
+    expect((await findByTestId("idle")).textContent).toBe("idle");
+
+    await user.type(input, "admin");
+    await user.click(button);
+
+    expect(state.textContent).toBe("loading");
+    await waitFor(() => expect(state.textContent).toBe("success"));
+    expect((await findByTestId("success")).textContent).toBe("success");
+  });
 });
