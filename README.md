@@ -30,7 +30,7 @@
     <!-- · -->
     <a href="https://github.com/mieszkosabo/florence-state-machine/issues">Report Bug</a>
     ·
-    <a href="https://github.com/mieszkosabo/florence-state-machine/issues/add">Request Feature</a>
+    <a href="https://github.com/mieszkosabo/florence-state-machine/issues/new">Request Feature</a>
   </p>
 </div>
 
