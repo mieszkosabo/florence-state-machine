@@ -56,7 +56,9 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-TODO:
+This library was designed to be a sweet spot between sophisticated, and sometimes even overwhelming solutions such as [XState](https://xstate.js.org/docs/) and a often too simplistic React's `useReducer`.
+
+Florence state machine is not a global state manager, but a lightweight tool to handle complex UI logic on more local level, such as in a single component.
 
 <!-- Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `mieszkosabo`, `florence-state-machine`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description` -->
 
@@ -90,7 +92,47 @@ pnpm add florence-state-machine
 
 ## Usage
 
-TODO:
+Let's say that we want to implement a login screen, where user can login with an email.
+
+We start with defining all events (or "actions") that can happen in our *"system"*:
+
+```ts
+export type Action =
+  | { type: "inputChange"; payload: string }
+  | { type: "loginRequest" }
+  | { type: "loginSuccess" }
+  | { type: "loginError"; payload: { message: string } };
+```
+This union type contains information about everything that can happen at some point. The first two actions come from the user and the last two
+will come from the auth server. However, it doesn't matter from where the actions come to our state machine, so we don't include any information about it.
+
+Next, we'll define all possible states in which our system can be in. When defining a state machine for UI this step is suprisingly easy, since
+all states usually differ from each other visually, so it's not abstract. In our case:
+
+```ts
+export type State =
+  | { name: "idle" }
+  | { name: "loading" }
+  | { name: "error"; message: string }
+  | { name: "success" };
+```
+We are missing the info about the state of the user input though. We could put it into the `idle` state, however that would introduce at least two problems:
+1. We would probably have to put it and pass between `loading` and `error` states, so that the input doesn't lose its value between state changes.
+2. We would change state on every keystroke and that's not really semanticaly intuitive, since the state is `editing email form` (or `idle`) the whole time. But *something* changes, so what is it? The answer is *context*.
+
+In `florence-state-machine` context is a mechanism that allows us to share some mutable data between all states:
+
+```ts
+export type Context = {
+  username: string;
+};
+```
+
+Another example of a situation where context could be handy is imagine we're writting a stopwatch that has states such as `countdown` and `paused`. Both
+of theses states should have access to the `currentTime` and that value should be decreased after every second when in the `countdown` state.
+
+
+
 
 <!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
