@@ -1,7 +1,7 @@
-import { UsePromiseExample } from "./examples/UsePromiseExample";
+import { Stopwatch } from "./examples/Stopwatch";
 
 function App() {
-  return <UsePromiseExample />;
+  return <Stopwatch />;
 }
 
 export default App;
