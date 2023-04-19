@@ -24,7 +24,7 @@ export type Context = {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const requestLogin = async (username: string): Promise<Action> => {
-  await sleep(5);
+  await sleep(50);
   if (username === "admin") {
     return { type: "loginSuccess" };
   }
@@ -206,7 +206,7 @@ describe("useMachine", () => {
             { name: "default", ctx: { counter: state.ctx.counter } },
             () =>
               new Promise((resolve) =>
-                setTimeout(() => resolve({ type: "increment" }), 20)
+                setTimeout(() => resolve({ type: "increment" }), 25)
               ),
           ];
         default:
@@ -280,7 +280,7 @@ describe("useMachine", () => {
                 { name: "loading" },
                 () =>
                   new Promise((resolve) =>
-                    setTimeout(() => resolve({ type: "ready" }), 20)
+                    setTimeout(() => resolve({ type: "ready" }), 50)
                   ),
               ];
             case "ready":

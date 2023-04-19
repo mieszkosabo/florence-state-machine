@@ -56,7 +56,9 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-TODO:
+This library was designed to be a sweet spot between sophisticated, and sometimes even overwhelming solutions such as [XState](https://xstate.js.org/docs/) and a often too simplistic ones such as React's `useReducer`.
+
+Florence state machine is not a global state manager, but a lightweight tool to handle complex UI logic in a type-safe and declarative style.
 
 <!-- Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `mieszkosabo`, `florence-state-machine`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description` -->
 
@@ -88,9 +90,195 @@ pnpm add florence-state-machine
 
 <!-- USAGE EXAMPLES -->
 
-## Usage
+## Basic Usage
 
-TODO:
+Let's say that we want to implement a login screen, where user can login with an username.
+
+### Actions/Events
+
+We start with defining all events (or "actions") that can happen in our _"system"_:
+
+```ts
+export type Action =
+  | { type: "inputChange"; payload: string }
+  | { type: "loginRequest" }
+  | { type: "loginSuccess" }
+  | { type: "loginError"; payload: { message: string } };
+```
+
+This union type contains information about everything that can happen at some point. The first two actions come from the user and the last two
+will come from the auth server. However, it doesn't matter from where the actions come to our state machine, so we don't include any information about it.
+
+### States
+
+Next, we'll define all possible states in which our system can be in. When defining a state machine for UI this step is
+oftentimes surprisingly easy, since all states usually differ from each other visually, so it's not abstract. In our case:
+
+```ts
+export type State =
+  | { name: "idle" }
+  | { name: "loading" }
+  | { name: "error"; message: string }
+  | { name: "success" };
+```
+
+We are missing the info about the state of the current value of the user input though. We could put it into the `idle` state, however that would introduce at least two problems:
+
+1. We would probably have to put it into `idle`, `loading` and `error` states and handle passing it between them, so that the input doesn't reset its value between state changes.
+2. We would change state on every keystroke and that's not really semantically intuitive, since the state is `editing email form` (or `idle`) the whole time. But _something_ changes, so what is it? The answer is _context_.
+
+### Context
+
+In `florence-state-machine` context is a mechanism that allows us to share some mutable data between all states:
+
+```ts
+export type Context = {
+  username: string;
+};
+```
+
+### Effects
+
+Effects are async functions that return an action. Their signature is `() => Promise<Action>`. They are used to describe any async operations
+that can happen in our system. In our case we will need to make a request to the auth server, so we will define an effect for that:
+
+```ts
+export const loginEffect = async (username: string): Promise<Action> => {
+  try {
+    await login(username);
+    return { type: "loginSuccess" };
+  } catch (error) {
+    return { type: "loginError", payload: { message: error.message } };
+  }
+};
+```
+
+where `login` is some function that makes a request to the auth server.
+
+### Transitions
+
+Now, having defined all of the little pieces above, let's define how they all relate to each other.
+We'll do that by defining a "spicy" version of a reducer function. A regular reducer (eg. used by `useReducer` hook or in Redux) is
+a function that takes a state and an action and returns a new state. Its signature is `(state: State, action: Action) => State`.
+A reducer in `florence-state-machine` is slightly more powerful, its signature is
+
+```ts
+(
+  state: State & { ctx: Context },
+  action: Action
+) =>
+  | State
+  | (State & { ctx: Context })
+  | [State, Effect<Action>]
+  | [State & { ctx: Context }, Effect<Action>];
+
+```
+
+It takes a state (but with context!), an action and returns either
+
+- a new state (this case is the same as in a regular reducer)
+- a new state with updated context
+- A tuple with a new state and a "declaration" of an effect that should be executed.
+- The same as above, but with updated context.
+
+Let's write a reducer for our login screen:
+
+```ts
+import type { Reducer } from "florence-state-machine";
+
+export const reducer: Reducer<State, Action, Context> = (state, action) => {
+  switch (state.name) {
+    case "idle": {
+      switch (action.type) {
+        case "inputChange":
+          return {
+            name: "idle",
+            ctx: {
+              username: action.payload,
+            },
+          };
+        case "loginRequest":
+          return [
+            {
+              name: "loading",
+            },
+            () => requestLogin(state.ctx.username),
+          ];
+        default:
+          return state;
+      }
+    }
+    case "loading":
+      switch (action.type) {
+        case "loginSuccess":
+          return {
+            name: "success",
+          };
+        case "loginError":
+          return {
+            name: "error",
+            message: action.payload.message,
+          };
+        default:
+          return state;
+      }
+    default:
+      return state;
+  }
+};
+```
+
+By typing the reducer with a `Reducer` type from `florence-state-machine` we get type-safety and a nice autocomplete
+throughout writing this function.
+
+### Using the machine
+
+First of all, notice how we described our whole system in this nice, readable way without even using this library! That was one
+of the design goals of `florence-state-machine`: You don't have to learn any new syntax to use it, it's just TypeScript.
+
+So what exactly does this library do? You can think of it as an execution engine for your actions. In case of simple actions it just
+updates the state based on your reducer, however in case of effects it will execute them and, if the state didn't change in the meantime,
+it will send the outputted action to the machine.
+
+Now, let's use it in a React component:
+
+```tsx
+export function LoginPage() {
+  const { state, send } = useMachine(reducer, { name: "idle" });
+
+  switch (state.name) {
+    case "idle":
+      return (
+        <div>
+          <input
+            type="text"
+            onChange={(e) =>
+              send({ type: "inputChange", payload: e.target.value })
+            }
+          />
+          <button onClick={() => send({ type: "loginRequest" })}>login</button>
+        </div>
+      );
+    case "loading":
+      return <div>loading...</div>;
+    case "error":
+      return (
+        <div>
+          <p>error!</p>
+          <p>{state.message}</p>
+        </div>
+      );
+    case "success":
+      return (
+        <div>
+          <p>success!</p>
+        </div>
+      );
+  }
+}
+```
+
+These are the basics of `florence-state-machine`. You can find more examples in the `examples` directory.
 
 <!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
