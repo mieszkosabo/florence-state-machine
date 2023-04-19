@@ -56,9 +56,9 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-This library was designed to be a sweet spot between sophisticated, and sometimes even overwhelming solutions such as [XState](https://xstate.js.org/docs/) and a often too simplistic React's `useReducer`.
+This library was designed to be a sweet spot between sophisticated, and sometimes even overwhelming solutions such as [XState](https://xstate.js.org/docs/) and a often too simplistic ones such as React's `useReducer`.
 
-Florence state machine is not a global state manager, but a lightweight tool to handle complex UI logic on more local level, such as in a single component.
+Florence state machine is not a global state manager, but a lightweight tool to handle complex UI logic in a type-safe and declarative style.
 
 <!-- Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `mieszkosabo`, `florence-state-machine`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description` -->
 
