@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, assertType } from "vitest";
 import { Reducer } from "./types";
 import { useMachine } from "./useMachine";
-import { render, waitFor } from "@testing-library/react";
+import { render, renderHook, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 export type Action =
@@ -362,7 +362,7 @@ describe("useMachine", () => {
     expect(state.textContent).toBe("idle");
   });
 
-  it("matches", async () => {
+  it("basic matches", async () => {
     function App() {
       const { state, send, matches } = useMachine(reducer, {
         name: "idle",
@@ -407,5 +407,48 @@ describe("useMachine", () => {
     expect(state.textContent).toBe("loading");
     await waitFor(() => expect(state.textContent).toBe("success"));
     expect((await findByTestId("success")).textContent).toBe("success");
+  });
+
+  it("matches has correct type", () => {
+    const { result } = renderHook(() =>
+      useMachine(reducer, {
+        name: "idle",
+      })
+    );
+    const { matches } = result.current;
+
+    // matches with no branches always gives us null
+    const val1 = matches({});
+    assertType<null>(val1);
+    expect(val1).toBe(null);
+
+    // matches with some, but not all branches gives us the union
+    // or branches' return values and null (for the missing ones)
+    const val2 = matches({
+      idle: () => "hello",
+      loading: () => 42 as const,
+    });
+    assertType<42 | string | null>(val2);
+    assertType<Extract<typeof val2, null>>(null);
+    expect(val2).toBe("hello");
+
+    // matches with all branches gives us the union of branches' return values
+    const val3 = matches({
+      idle: () => "hello",
+      error: () => "world",
+      loading: () => 42 as const,
+      success: () => true,
+    });
+    assertType<42 | string | boolean>(val3);
+
+    // matches won't accept branches that don't match state names
+    matches({
+      idle: () => "hello",
+      error: () => "world",
+      loading: () => 42 as const,
+
+      // @ts-expect-error - this branch doesn't match any state name
+      asdfasdf: () => true,
+    });
   });
 });

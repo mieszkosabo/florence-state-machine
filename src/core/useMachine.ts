@@ -1,7 +1,9 @@
 import {
   ActionShape,
+  CalculateMatchesReturnType,
   ContextShape,
   Effect,
+  Exactly,
   Reducer,
   StateShape,
 } from "./types";
@@ -14,10 +16,6 @@ import {
 } from "./executors";
 import { useSubscription } from "./utils";
 
-type Matches<S extends StateShape, C extends ContextShape> = (arg: {
-  [key in S["name"]]: (state: Extract<S, { name: key }> & { ctx: C }) => any;
-}) => any;
-
 export const useMachine = <
   S extends StateShape,
   A extends ActionShape,
@@ -26,11 +24,7 @@ export const useMachine = <
   reducer: Reducer<S, A, C>,
   initialState: S,
   initialContext?: C
-): {
-  state: S & { ctx: C };
-  send: (action: A) => void;
-  matches: Matches<S, C>;
-} => {
+) => {
   const store = useRef(createStore(initialState, initialContext ?? ({} as C)));
   const actionsChannel = useRef(createChannel<A>());
   const effectsChannel = useRef(createChannel<Effect<A>>());
@@ -39,13 +33,15 @@ export const useMachine = <
     actionsChannel.current.send(action);
   }, []);
 
-  useSubscription(() =>
-    createExecutor(
-      store.current,
-      reducer,
-      actionsChannel.current,
-      effectsChannel.current
-    )
+  useSubscription(
+    () =>
+      createExecutor(
+        store.current,
+        reducer,
+        actionsChannel.current,
+        effectsChannel.current
+      ),
+    [reducer]
   );
 
   useSubscription(() =>
@@ -59,10 +55,23 @@ export const useMachine = <
 
   const fullState = { ...state.state, ctx: state.ctx };
 
-  const matches = (arg: Parameters<Matches<S, C>>[0]) =>
+  type MatchesArgShape = {
+    [key in S["name"]]?: (state: Extract<S, { name: key }> & { ctx: C }) => any;
+  };
+
+  const matches = <T extends MatchesArgShape>(
+    arg: Exactly<MatchesArgShape, T>
+  ): CalculateMatchesReturnType<T, MatchesArgShape> => {
+    const match = arg[state.state.name as S["name"]];
+
+    if (!match) {
+      return null as never;
+    }
+
     // using casting here because we know this is correct
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    arg[state.state.name as S["name"]](fullState as never);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+    return (match as any)(fullState as never);
+  };
 
   return {
     state: {

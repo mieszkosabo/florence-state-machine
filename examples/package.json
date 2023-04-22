@@ -9,9 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "florence-state-machine": "link:..",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "florence-state-machine": "link:.."
+    "ts-pattern": "^4.2.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",

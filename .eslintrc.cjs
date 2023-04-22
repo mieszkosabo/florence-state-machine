@@ -11,4 +11,7 @@ module.exports = {
   },
   plugins: ["@typescript-eslint"],
   root: true,
+  rules: {
+    "@typescript-eslint/no-unsafe-assignment": "off",
+  },
 };

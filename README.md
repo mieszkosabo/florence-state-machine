@@ -102,11 +102,12 @@ We start with defining all events (or "actions") that can happen in our _"system
 export type Action =
   | { type: "inputChange"; payload: string }
   | { type: "loginRequest" }
+  | { type: "logout" }
   | { type: "loginSuccess" }
   | { type: "loginError"; payload: { message: string } };
 ```
 
-This union type contains information about everything that can happen at some point. The first two actions come from the user and the last two
+This union type contains information about everything that can happen at some point. The first three actions come from the user and the last two
 will come from the auth server. However, it doesn't matter from where the actions come to our state machine, so we don't include any information about it.
 
 ### States
@@ -208,11 +209,14 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
           return state;
       }
     }
-    case "loading":
+    case "loading": {
       switch (action.type) {
         case "loginSuccess":
           return {
             name: "success",
+            ctx: {
+              username: "",
+            },
           };
         case "loginError":
           return {
@@ -222,14 +226,47 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
         default:
           return state;
       }
+    }
+    case "error": {
+      switch (action.type) {
+        case "inputChange": {
+          return {
+            name: "idle",
+            ctx: {
+              username: action.payload,
+            },
+          };
+        }
+        default:
+          return state;
+      }
+    }
+    case "success": {
+      switch (action.type) {
+        case "logout":
+          return { name: "idle" };
+        default:
+          return state;
+      }
+    }
     default:
       return state;
   }
 };
 ```
 
-By typing the reducer with a `Reducer` type from `florence-state-machine` we get type-safety and a nice autocomplete
+Three things to notice here:
+
+First, by typing the reducer with a `Reducer` type from `florence-state-machine` we get type-safety and a nice autocomplete
 throughout writing this function.
+
+Second, in `loginRequest` we use our special syntax of returning a tuple.
+Its first element is a state that the machine should transition immediately to, and the second element is an effect that should be executed.
+
+Third, and most importantly, notice how first thing we do is switch _on the state_
+and then for each state we switch on the action.
+This is one of the biggest mind-shifts when coming from Redux, where a state is usually a single object instead of an union, but it's the key of keeping the logic
+of your system readable and less error-prone.
 
 ### Using the machine
 
@@ -243,38 +280,54 @@ it will send the outputted action to the machine.
 Now, let's use it in a React component:
 
 ```tsx
-export function LoginPage() {
-  const { state, send } = useMachine(reducer, { name: "idle" });
+import { useMachine } from "florence-state-machine";
 
-  switch (state.name) {
-    case "idle":
-      return (
-        <div>
-          <input
-            type="text"
-            onChange={(e) =>
-              send({ type: "inputChange", payload: e.target.value })
-            }
-          />
-          <button onClick={() => send({ type: "loginRequest" })}>login</button>
-        </div>
-      );
-    case "loading":
-      return <div>loading...</div>;
-    case "error":
-      return (
-        <div>
-          <p>error!</p>
-          <p>{state.message}</p>
-        </div>
-      );
-    case "success":
-      return (
-        <div>
-          <p>success!</p>
-        </div>
-      );
+function LoginPage() {
+  const { state, send, matches } = useMachine(reducer, { name: "idle" });
+
+  if (state.name === "success") {
+    return (
+      <div>
+        <h1>Login Success</h1>
+        <button onClick={() => send({ type: "logout" })}>logout</button>
+      </div>
+    );
   }
+
+  return (
+    <div>
+      <h1>Login page</h1>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          maxWidth: "320px",
+          gap: "16px",
+        }}
+      >
+        <input
+          type="text"
+          disabled={state.name === "loading"}
+          onChange={(e) =>
+            send({ type: "inputChange", payload: e.target.value })
+          }
+        />
+        <button
+          disabled={state.name === "error" || state.name === "loading"}
+          onClick={() => send({ type: "loginRequest" })}
+        >
+          {matches({
+            idle: () => "login",
+            error: () => "login",
+            loading: () => "loading...",
+          })}
+        </button>
+        {matches({
+          error: ({ message }) => <p style={{ color: "red" }}>{message}</p>,
+        })}
+      </div>
+    </div>
+  );
 }
 ```
 

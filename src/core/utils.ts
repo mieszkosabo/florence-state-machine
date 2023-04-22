@@ -19,11 +19,14 @@ export const isDifferentStateShallow = <S extends StateShape>(
   return isDifferentObjShallow(s1, s2);
 };
 
-export const useSubscription = (sub: () => () => void) => {
+export const useSubscription = (
+  sub: () => () => void,
+  deps?: React.DependencyList
+) => {
   useEffect(() => {
     const unsubscribe = sub();
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, deps ?? []);
 };

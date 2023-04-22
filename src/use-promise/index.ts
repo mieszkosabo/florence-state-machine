@@ -76,38 +76,34 @@ export const reducer =
       case "resolved":
         switch (action.type) {
           case "start":
-            return { name: "pending" };
+            return [
+              { name: "pending" },
+              () =>
+                promise()
+                  .then(
+                    (value) => ({ type: "resolve", payload: value } as const)
+                  )
+                  .catch((error) => ({
+                    type: "reject",
+                    payload:
+                      error instanceof Error
+                        ? error
+                        : new Error(error as string),
+                  })),
+            ];
           default:
             return state;
         }
     }
   };
 
-type MakeOptional<T, Keys> = { [K in Extract<keyof T, Keys>]?: T[K] } & {
-  [K in Exclude<keyof T, Keys>]: T[K];
-};
-
-type Matches<V> = (
-  arg: MakeOptional<
-    {
-      [key in State<V>["name"]]: (
-        state: Extract<State<V>, { name: key }>
-      ) => JSX.Element | null;
-    },
-    "idle"
-  >
-) => JSX.Element | null;
-
 export function usePromise<V>(
   promise: () => Promise<V>,
   config = { autoInvoke: true }
-): {
-  state: State<V>;
-  start: () => void;
-  cancel: () => void;
-  matches: Matches<V>;
-} {
-  const { state, send } = useMachine(reducer(promise), { name: "idle" });
+) {
+  const { state, send, matches } = useMachine(reducer(promise), {
+    name: "idle",
+  });
 
   useEffect(() => {
     if (config.autoInvoke) {
@@ -117,25 +113,11 @@ export function usePromise<V>(
 
   const start = useCallback(() => {
     send({ type: "start" });
-    promise()
-      .then((value) => send({ type: "resolve", payload: value }))
-      .catch((error) => send({ type: "reject", payload: error as Error }));
   }, [promise, send]);
 
   const cancel = useCallback(() => {
     send({ type: "cancel" });
   }, [send]);
-
-  const matches = useCallback(
-    (arg: Parameters<Matches<V>>[0]) => {
-      const func = arg[state.name];
-      if (func) {
-        return func(state as never);
-      }
-      return null;
-    },
-    [state.name]
-  );
 
   return {
     state,
