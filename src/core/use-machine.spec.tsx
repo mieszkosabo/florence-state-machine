@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { describe, it, expect, vi, assertType } from "vitest";
 import { Reducer } from "./types";
-import { useMachine } from "./useMachine";
+import { useMachine } from "./use-machine";
 import { render, renderHook, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
