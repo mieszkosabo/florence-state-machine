@@ -2,6 +2,15 @@ import { useMachine } from "florence-state-machine";
 import type { Reducer } from "florence-state-machine";
 import { sleep } from "../utils";
 import { P, match } from "ts-pattern";
+import {
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Text,
+} from "@chakra-ui/react";
 
 export type Action =
   | { type: "inputChange"; payload: string }
@@ -148,44 +157,52 @@ function LoginPage() {
   if (state.name === "success") {
     return (
       <div>
-        <h1>Login Success</h1>
-        <button onClick={() => send({ type: "logout" })}>logout</button>
+        <Heading mb={4}>Login success</Heading>
+        <Text mb={4} color="gray.500">
+          You have successfully logged in!
+        </Text>
+        <Button onClick={() => send({ type: "logout" })}>Log out</Button>
       </div>
     );
   }
 
   return (
     <div>
-      <h1>Login page</h1>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          maxWidth: "320px",
-          gap: "16px",
-        }}
-      >
-        <input
-          type="text"
-          disabled={state.name === "loading"}
-          onChange={(e) =>
-            send({ type: "inputChange", payload: e.target.value })
-          }
-        />
-        <button
-          disabled={state.name === "error" || state.name === "loading"}
-          onClick={() => send({ type: "loginRequest" })}
-        >
+      <Heading mb={8}>Login page</Heading>
+      <Flex direction="column" maxW="320px" gap="16px">
+        <form onSubmit={() => send({ type: "loginRequest" })}>
+          <FormControl>
+            <FormLabel>Username</FormLabel>
+            <Input
+              mb={2}
+              type="text"
+              disabled={state.name === "loading"}
+              isInvalid={state.name === "error"}
+              onChange={(e) =>
+                send({ type: "inputChange", payload: e.target.value })
+              }
+            />
+            <Flex w="full" justify="flex-end">
+              <Button
+                type="submit"
+                colorScheme="teal"
+                isLoading={state.name === "loading"}
+                loadingText={"Loading..."}
+                isDisabled={state.name === "error" || state.name === "loading"}
+                onClick={() => send({ type: "loginRequest" })}
+              >
+                {matches({
+                  idle: () => "Log in",
+                  error: () => "Log in",
+                })}
+              </Button>
+            </Flex>
+          </FormControl>
           {matches({
-            idle: () => "login",
-            error: () => "login",
-            loading: () => "loading...",
+            error: ({ message }) => <Text color="red.600">{message}</Text>,
           })}
-        </button>
-        {matches({
-          error: ({ message }) => <p style={{ color: "red" }}>{message}</p>,
-        })}
-      </div>
+        </form>
+      </Flex>
     </div>
   );
 }
