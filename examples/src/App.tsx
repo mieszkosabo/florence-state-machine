@@ -10,10 +10,12 @@ import {
 import LoginPage from "./examples/LoginPage";
 import { UsePromiseExample } from "./examples/UsePromiseExample";
 import { SunIcon, MoonIcon } from "@chakra-ui/icons";
+import { Stopwatch } from "./examples/Stopwatch";
 
 const EXAMPLES: Record<string, () => JSX.Element> = {
   "login-page": LoginPage,
   "use-promise": UsePromiseExample,
+  stopwatch: Stopwatch,
 };
 
 const useExample = () => {
@@ -55,8 +57,11 @@ function App() {
           <Text color="teal.500" fontWeight={500}>
             Examples
           </Text>
-          <Link href="/login-page">login-page</Link>
-          <Link href="/use-promise">use-promise</Link>
+          {Object.keys(EXAMPLES).map((exampleKey) => (
+            <Link key={exampleKey} href={"/" + exampleKey}>
+              {exampleKey}
+            </Link>
+          ))}
         </VStack>
         <Flex w="full" h="full">
           <Example />
