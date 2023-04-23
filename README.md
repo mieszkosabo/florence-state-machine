@@ -268,6 +268,59 @@ and then for each state we switch on the action.
 This is one of the biggest mind-shifts when coming from Redux, where a state is usually a single object instead of an union, but it's the key of keeping the logic
 of your system readable and less error-prone.
 
+### Usage with ts-pattern
+
+Writing the reducer using switch statements is not bad as we get type safety and autocomplete, but it is
+a lot of boilerplate, especially because of the need of having multiple `default: return state` statements and duplicated
+logic when some action needs to be handled in the same way in multiple cases.
+
+That is why we recommend using `ts-pattern` library to write reducers. It allows us to write the same reducer
+in a much more concise way that is also easier to read and maintain:
+
+```ts
+const reducerWithTsPattern: Reducer<State, Action, Context> = (state, action) =>
+  // with ts-pattern we can match simultaneously on state.name and action.type!
+  match<[State["name"], Action], ReturnType<Reducer<State, Action, Context>>>([
+    state.name,
+    action,
+  ])
+    .with(
+      // in both idle and error state, we want to handle inputChange in the same way
+      [P.union("idle", "error"), { type: "inputChange", payload: P.select() }],
+      (username) => ({
+        name: "idle",
+        ctx: {
+          username: username,
+        },
+      })
+    )
+    // only in idle state we want to handle loginRequest
+    .with(["idle", { type: "loginRequest" }], () => [
+      {
+        name: "loading",
+      },
+      () => requestLogin(state.ctx.username),
+    ])
+    // below, two possible events that can happen in loading state
+    .with(["loading", { type: "loginSuccess" }], () => ({
+      name: "success",
+      ctx: {
+        username: "",
+      },
+    }))
+    .with(
+      ["loading", { type: "loginError", payload: P.select() }],
+      (error) => ({
+        name: "error",
+        message: error.message,
+      })
+    )
+    // nice and simple case for logout event -> only possible in success state
+    .with(["success", { type: "logout" }], () => ({ name: "idle" }))
+    // a single, global "default" case for all other combinations of states and events that we don't care about!
+    .otherwise(() => state);
+```
+
 ### Using the machine
 
 First of all, notice how we described our whole system in this nice, readable way without even using this library! That was one

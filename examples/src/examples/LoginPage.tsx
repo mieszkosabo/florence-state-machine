@@ -1,6 +1,7 @@
 import { useMachine } from "florence-state-machine";
 import type { Reducer } from "florence-state-machine";
 import { sleep } from "../utils";
+import { P, match } from "ts-pattern";
 
 export type Action =
   | { type: "inputChange"; payload: string }
@@ -97,10 +98,52 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
   }
 };
 
-// TODO: usage with ts-pattern
+const reducerWithTsPattern: Reducer<State, Action, Context> = (state, action) =>
+  // with ts-pattern we can match simultaneously on state.name and action.type!
+  match<[State["name"], Action], ReturnType<Reducer<State, Action, Context>>>([
+    state.name,
+    action,
+  ])
+    .with(
+      // in both idle and error state, we want to handle inputChange in the same way
+      [P.union("idle", "error"), { type: "inputChange", payload: P.select() }],
+      (username) => ({
+        name: "idle",
+        ctx: {
+          username: username,
+        },
+      })
+    )
+    // only in idle state we want to handle loginRequest
+    .with(["idle", { type: "loginRequest" }], () => [
+      {
+        name: "loading",
+      },
+      () => requestLogin(state.ctx.username),
+    ])
+    // below, two possible events that can happen in loading state
+    .with(["loading", { type: "loginSuccess" }], () => ({
+      name: "success",
+      ctx: {
+        username: "",
+      },
+    }))
+    .with(
+      ["loading", { type: "loginError", payload: P.select() }],
+      (error) => ({
+        name: "error",
+        message: error.message,
+      })
+    )
+    // nice and simple case for logout event -> only possible in success state
+    .with(["success", { type: "logout" }], () => ({ name: "idle" }))
+    // a single, global "default" case for all other combinations of states and events that we don't care about!
+    .otherwise(() => state);
 
 function LoginPage() {
-  const { state, send, matches } = useMachine(reducer, { name: "idle" });
+  const { state, send, matches } = useMachine(reducerWithTsPattern, {
+    name: "idle",
+  });
 
   if (state.name === "success") {
     return (
