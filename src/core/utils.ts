@@ -8,9 +8,9 @@ export const isDifferentObjShallow = <T extends Record<string, unknown>>(
   return Object.keys(o1).some((key) => o1[key] !== o2[key]);
 };
 
-export const isDifferentStateShallow = <S extends StateShape>(
-  s1: S,
-  s2: S
+export const isDifferentStateShallow = <St extends StateShape>(
+  s1: St,
+  s2: St
 ): boolean => {
   if (s1.name !== s2.name) {
     return true;

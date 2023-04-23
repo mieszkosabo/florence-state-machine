@@ -12,7 +12,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-export type Action =
+export type Event =
   | { type: "inputChange"; payload: string }
   | { type: "loginRequest" }
   | { type: "logout" }
@@ -29,7 +29,7 @@ export type Context = {
   username: string;
 };
 
-const requestLogin = async (username: string): Promise<Action> => {
+const requestLogin = async (username: string): Promise<Event> => {
   await sleep(1000);
   if (username === "admin") {
     return { type: "loginSuccess" };
@@ -40,15 +40,15 @@ const requestLogin = async (username: string): Promise<Action> => {
   };
 };
 
-export const reducer: Reducer<State, Action, Context> = (state, action) => {
+export const reducer: Reducer<State, Event, Context> = (state, event) => {
   switch (state.name) {
     case "idle": {
-      switch (action.type) {
+      switch (event.type) {
         case "inputChange":
           return {
             name: "idle",
             ctx: {
-              username: action.payload,
+              username: event.payload,
             },
           };
         case "loginRequest":
@@ -63,7 +63,7 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
       }
     }
     case "loading": {
-      switch (action.type) {
+      switch (event.type) {
         case "loginSuccess":
           return {
             name: "success",
@@ -74,19 +74,19 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
         case "loginError":
           return {
             name: "error",
-            message: action.payload.message,
+            message: event.payload.message,
           };
         default:
           return state;
       }
     }
     case "error": {
-      switch (action.type) {
+      switch (event.type) {
         case "inputChange": {
           return {
             name: "idle",
             ctx: {
-              username: action.payload,
+              username: event.payload,
             },
           };
         }
@@ -95,7 +95,7 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
       }
     }
     case "success": {
-      switch (action.type) {
+      switch (event.type) {
         case "logout":
           return { name: "idle" };
         default:
@@ -107,11 +107,11 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
   }
 };
 
-const reducerWithTsPattern: Reducer<State, Action, Context> = (state, action) =>
-  // with ts-pattern we can match simultaneously on state.name and action.type!
-  match<[State["name"], Action], ReturnType<Reducer<State, Action, Context>>>([
+const reducerWithTsPattern: Reducer<State, Event, Context> = (state, event) =>
+  // with ts-pattern we can match simultaneously on state.name and event.type!
+  match<[State["name"], Event], ReturnType<Reducer<State, Event, Context>>>([
     state.name,
-    action,
+    event,
   ])
     .with(
       // in both idle and error state, we want to handle inputChange in the same way

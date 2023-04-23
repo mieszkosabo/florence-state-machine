@@ -1,6 +1,6 @@
 import { Effect, Reducer, useMachine } from "florence-state-machine";
 
-type Action =
+type Event =
   | { type: "start" }
   | { type: "pause" }
   | { type: "reset" }
@@ -12,20 +12,20 @@ type Context = {
   currentTime: number;
 };
 
-const tick: Effect<Action> = () =>
+const tick: Effect<Event> = () =>
   new Promise((resolve) => setTimeout(() => resolve({ type: "tick" }), 100));
 
-const reducer: Reducer<State, Action, Context> = (state, action) => {
+const reducer: Reducer<State, Event, Context> = (state, event) => {
   switch (state.name) {
     case "idle":
-      switch (action.type) {
+      switch (event.type) {
         case "start":
           return [{ name: "running" }, tick];
         default:
           return state;
       }
     case "running":
-      switch (action.type) {
+      switch (event.type) {
         case "pause":
           return { name: "paused" };
         case "reset":
@@ -42,7 +42,7 @@ const reducer: Reducer<State, Action, Context> = (state, action) => {
           return state;
       }
     case "paused":
-      switch (action.type) {
+      switch (event.type) {
         case "start":
           return [{ name: "running" }, tick];
         case "reset":

@@ -1,5 +1,5 @@
 import {
-  ActionShape,
+  EventShape,
   CalculateMatchesReturnType,
   ContextShape,
   Effect,
@@ -17,20 +17,20 @@ import {
 import { useSubscription } from "./utils";
 
 export const useMachine = <
-  S extends StateShape,
-  A extends ActionShape,
+  St extends StateShape,
+  Ev extends EventShape,
   C extends ContextShape
 >(
-  reducer: Reducer<S, A, C>,
-  initialState: S,
+  reducer: Reducer<St, Ev, C>,
+  initialState: St,
   initialContext?: C
 ) => {
   const store = useRef(createStore(initialState, initialContext ?? ({} as C)));
-  const actionsChannel = useRef(createChannel<A>());
-  const effectsChannel = useRef(createChannel<Effect<A>>());
+  const actionsChannel = useRef(createChannel<Ev>());
+  const effectsChannel = useRef(createChannel<Effect<Ev>>());
 
-  const send = useCallback((action: A) => {
-    actionsChannel.current.send(action);
+  const send = useCallback((event: Ev) => {
+    actionsChannel.current.send(event);
   }, []);
 
   useSubscription(
@@ -56,13 +56,15 @@ export const useMachine = <
   const fullState = { ...state.state, ctx: state.ctx };
 
   type MatchesArgShape = {
-    [key in S["name"]]?: (state: Extract<S, { name: key }> & { ctx: C }) => any;
+    [key in St["name"]]?: (
+      state: Extract<St, { name: key }> & { ctx: C }
+    ) => any;
   };
 
   const matches = <T extends MatchesArgShape>(
     arg: Exactly<MatchesArgShape, T>
   ): CalculateMatchesReturnType<T, MatchesArgShape> => {
-    const match = arg[state.state.name as S["name"]];
+    const match = arg[state.state.name as St["name"]];
 
     if (!match) {
       return null as never;

@@ -94,12 +94,12 @@ pnpm add florence-state-machine
 
 Let's say that we want to implement a login screen, where user can login with an username.
 
-### Actions/Events
+### Events
 
 We start with defining all events (or "actions") that can happen in our _"system"_:
 
 ```ts
-export type Action =
+export type Event =
   | { type: "inputChange"; payload: string }
   | { type: "loginRequest" }
   | { type: "logout" }
@@ -107,8 +107,8 @@ export type Action =
   | { type: "loginError"; payload: { message: string } };
 ```
 
-This union type contains information about everything that can happen at some point. The first three actions come from the user and the last two
-will come from the auth server. However, it doesn't matter from where the actions come to our state machine, so we don't include any information about it.
+This union type contains information about everything that can happen at some point. The first three events come from the user and the last two
+will come from the auth server. However, it doesn't matter from where the events come to our state machine, so we don't include any information about it.
 
 ### States
 
@@ -140,11 +140,11 @@ export type Context = {
 
 ### Effects
 
-Effects are async functions that return an action. Their signature is `() => Promise<Action>`. They are used to describe any async operations
+Effects are async functions that return an event. Their signature is `() => Promise<Event>`. They are used to describe any async operations
 that can happen in our system. In our case we will need to make a request to the auth server, so we will define an effect for that:
 
 ```ts
-export const loginEffect = async (username: string): Promise<Action> => {
+export const loginEffect = async (username: string): Promise<Event> => {
   try {
     await login(username);
     return { type: "loginSuccess" };
@@ -160,22 +160,22 @@ where `login` is some function that makes a request to the auth server.
 
 Now, having defined all of the little pieces above, let's define how they all relate to each other.
 We'll do that by defining a "spicy" version of a reducer function. A regular reducer (eg. used by `useReducer` hook or in Redux) is
-a function that takes a state and an action and returns a new state. Its signature is `(state: State, action: Action) => State`.
+a function that takes a state and an event and returns a new state. Its signature is `(state: State, event: Event) => State`.
 A reducer in `florence-state-machine` is slightly more powerful, its signature is
 
 ```ts
 (
   state: State & { ctx: Context },
-  action: Action
+  event: Event
 ) =>
   | State
   | (State & { ctx: Context })
-  | [State, Effect<Action>]
-  | [State & { ctx: Context }, Effect<Action>];
+  | [State, Effect<Event>]
+  | [State & { ctx: Context }, Effect<Event>];
 
 ```
 
-It takes a state (but with context!), an action and returns either
+It takes a state (but with context!), an event and returns either
 
 - a new state (this case is the same as in a regular reducer)
 - a new state with updated context
@@ -187,15 +187,15 @@ Let's write a reducer for our login screen:
 ```ts
 import type { Reducer } from "florence-state-machine";
 
-export const reducer: Reducer<State, Action, Context> = (state, action) => {
+export const reducer: Reducer<State, Event, Context> = (state, event) => {
   switch (state.name) {
     case "idle": {
-      switch (action.type) {
+      switch (event.type) {
         case "inputChange":
           return {
             name: "idle",
             ctx: {
-              username: action.payload,
+              username: event.payload,
             },
           };
         case "loginRequest":
@@ -210,7 +210,7 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
       }
     }
     case "loading": {
-      switch (action.type) {
+      switch (event.type) {
         case "loginSuccess":
           return {
             name: "success",
@@ -221,19 +221,19 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
         case "loginError":
           return {
             name: "error",
-            message: action.payload.message,
+            message: event.payload.message,
           };
         default:
           return state;
       }
     }
     case "error": {
-      switch (action.type) {
+      switch (event.type) {
         case "inputChange": {
           return {
             name: "idle",
             ctx: {
-              username: action.payload,
+              username: event.payload,
             },
           };
         }
@@ -242,7 +242,7 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
       }
     }
     case "success": {
-      switch (action.type) {
+      switch (event.type) {
         case "logout":
           return { name: "idle" };
         default:
@@ -264,7 +264,7 @@ Second, in `loginRequest` we use our special syntax of returning a tuple.
 Its first element is a state that the machine should transition immediately to, and the second element is an effect that should be executed.
 
 Third, and most importantly, notice how first thing we do is switch _on the state_
-and then for each state we switch on the action.
+and then for each state we switch on the event.
 This is one of the biggest mind-shifts when coming from Redux, where a state is usually a single object instead of an union, but it's the key of keeping the logic
 of your system readable and less error-prone.
 
@@ -272,17 +272,17 @@ of your system readable and less error-prone.
 
 Writing the reducer using switch statements is not bad as we get type safety and autocomplete, but it is
 a lot of boilerplate, especially because of the need of having multiple `default: return state` statements and duplicated
-logic when some action needs to be handled in the same way in multiple cases.
+logic when some event needs to be handled in the same way in multiple cases.
 
 That is why we recommend using `ts-pattern` library to write reducers. It allows us to write the same reducer
 in a much more concise way that is also easier to read and maintain:
 
 ```ts
-const reducerWithTsPattern: Reducer<State, Action, Context> = (state, action) =>
-  // with ts-pattern we can match simultaneously on state.name and action.type!
-  match<[State["name"], Action], ReturnType<Reducer<State, Action, Context>>>([
+const reducerWithTsPattern: Reducer<State, Event, Context> = (state, event) =>
+  // with ts-pattern we can match simultaneously on state.name and event.type!
+  match<[State["name"], Event], ReturnType<Reducer<State, Event, Context>>>([
     state.name,
-    action,
+    event,
   ])
     .with(
       // in both idle and error state, we want to handle inputChange in the same way
@@ -326,9 +326,9 @@ const reducerWithTsPattern: Reducer<State, Action, Context> = (state, action) =>
 First of all, notice how we described our whole system in this nice, readable way without even using this library! That was one
 of the design goals of `florence-state-machine`: You don't have to learn any new syntax to use it, it's just TypeScript.
 
-So what exactly does this library do? You can think of it as an execution engine for your actions. In case of simple actions it just
+So what exactly does this library do? You can think of it as an execution engine for your events. In case of simple events it just
 updates the state based on your reducer, however in case of effects it will execute them and, if the state didn't change in the meantime,
-it will send the outputted action to the machine.
+it will send the outputted event to the machine.
 
 Now, let's use it in a React component:
 

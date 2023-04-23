@@ -1,10 +1,4 @@
-import {
-  ActionShape,
-  ContextShape,
-  Effect,
-  Reducer,
-  StateShape,
-} from "./types";
+import { EventShape, ContextShape, Effect, Reducer, StateShape } from "./types";
 import { isDifferentObjShallow, isDifferentStateShallow } from "./utils";
 
 export type Channel<Message> = {
@@ -36,8 +30,8 @@ const getNewId = (oldId: number) => {
   return oldId + 1;
 };
 
-export const createStore = <S extends StateShape, C extends ContextShape>(
-  initialState: S,
+export const createStore = <St extends StateShape, C extends ContextShape>(
+  initialState: St,
   initialCtx: C
 ) => {
   let store = {
@@ -55,7 +49,7 @@ export const createStore = <S extends StateShape, C extends ContextShape>(
 
   const getStore = () => store;
 
-  const setState = (newState: S) => {
+  const setState = (newState: St) => {
     store = {
       ...store,
       state: newState,
@@ -89,32 +83,32 @@ export const createStore = <S extends StateShape, C extends ContextShape>(
 };
 
 export const createExecutor = <
-  S extends StateShape,
-  A extends ActionShape,
+  St extends StateShape,
+  Ev extends EventShape,
   C extends ContextShape
 >(
-  store: ReturnType<typeof createStore<S, C>>,
-  reducer: Reducer<S, A, C>,
-  actionsChannel: Channel<A>,
-  effectsChannel: Channel<Effect<A>>
+  store: ReturnType<typeof createStore<St, C>>,
+  reducer: Reducer<St, Ev, C>,
+  actionsChannel: Channel<Ev>,
+  effectsChannel: Channel<Effect<Ev>>
 ) => {
-  return actionsChannel.subscribe((action) => {
+  return actionsChannel.subscribe((event) => {
     const { state: oldState, ctx: oldCtx } = store.getStore();
-    const result = reducer({ ...oldState, ctx: oldCtx }, action);
+    const result = reducer({ ...oldState, ctx: oldCtx }, event);
 
     if (Array.isArray(result)) {
       const [nextState, effect] = result;
 
       if ("ctx" in nextState) {
         const { ctx, ...state } = nextState;
-        if (isDifferentStateShallow(state as unknown as S, oldState)) {
-          store.setState(state as unknown as S);
+        if (isDifferentStateShallow(state as unknown as St, oldState)) {
+          store.setState(state as unknown as St);
         }
         if (isDifferentObjShallow(ctx, oldCtx)) {
           store.setContext(ctx);
         }
       } else {
-        if (isDifferentStateShallow(nextState, oldState as unknown as S)) {
+        if (isDifferentStateShallow(nextState, oldState as unknown as St)) {
           store.setState(nextState);
         }
       }
@@ -124,14 +118,14 @@ export const createExecutor = <
       if ("ctx" in result) {
         const { ctx, ...state } = result;
 
-        if (isDifferentStateShallow(state as unknown as S, oldState)) {
-          store.setState(state as unknown as S);
+        if (isDifferentStateShallow(state as unknown as St, oldState)) {
+          store.setState(state as unknown as St);
         }
         if (isDifferentObjShallow(ctx, oldCtx)) {
           store.setContext(ctx);
         }
       } else {
-        if (isDifferentStateShallow(result, oldState as unknown as S)) {
+        if (isDifferentStateShallow(result, oldState as unknown as St)) {
           store.setState(result);
         }
       }
@@ -140,13 +134,13 @@ export const createExecutor = <
 };
 
 export const createEffectsExecutor = <
-  S extends StateShape,
-  A extends ActionShape,
+  St extends StateShape,
+  Ev extends EventShape,
   C extends ContextShape
 >(
-  store: ReturnType<typeof createStore<S, C>>,
-  effectsChannel: Channel<Effect<A>>,
-  send: (action: A) => void
+  store: ReturnType<typeof createStore<St, C>>,
+  effectsChannel: Channel<Effect<Ev>>,
+  send: (event: Ev) => void
 ) => {
   return effectsChannel.subscribe((effect) => {
     const currentId = store.getStore()._id;

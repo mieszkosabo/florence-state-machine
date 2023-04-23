@@ -17,7 +17,7 @@ type State<Value> =
       error: Error;
     };
 
-type Action<Value> =
+type Event<Value> =
   | {
       type: "start";
     }
@@ -37,11 +37,11 @@ export const reducer =
   <V>(promise: () => Promise<V>) =>
   (
     state: State<V>,
-    action: Action<V>
-  ): ReturnType<Reducer<State<V>, Action<V>>> => {
+    event: Event<V>
+  ): ReturnType<Reducer<State<V>, Event<V>>> => {
     switch (state.name) {
       case "idle":
-        switch (action.type) {
+        switch (event.type) {
           case "start":
             return [
               { name: "pending" },
@@ -62,19 +62,19 @@ export const reducer =
             return state;
         }
       case "pending":
-        switch (action.type) {
+        switch (event.type) {
           case "cancel":
             return { name: "idle" };
           case "resolve":
-            return { name: "resolved", value: action.payload };
+            return { name: "resolved", value: event.payload };
           case "reject":
-            return { name: "rejected", error: action.payload };
+            return { name: "rejected", error: event.payload };
           default:
             return state;
         }
       case "rejected":
       case "resolved":
-        switch (action.type) {
+        switch (event.type) {
           case "start":
             return [
               { name: "pending" },

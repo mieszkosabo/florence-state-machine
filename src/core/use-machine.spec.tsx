@@ -5,7 +5,7 @@ import { useMachine } from "./use-machine";
 import { render, renderHook, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-export type Action =
+export type Event =
   | { type: "inputChange"; payload: string }
   | { type: "loginRequest" }
   | { type: "loginSuccess" }
@@ -23,7 +23,7 @@ export type Context = {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const requestLogin = async (username: string): Promise<Action> => {
+const requestLogin = async (username: string): Promise<Event> => {
   await sleep(50);
   if (username === "admin") {
     return { type: "loginSuccess" };
@@ -34,15 +34,15 @@ const requestLogin = async (username: string): Promise<Action> => {
   };
 };
 
-export const reducer: Reducer<State, Action, Context> = (state, action) => {
+export const reducer: Reducer<State, Event, Context> = (state, event) => {
   switch (state.name) {
     case "idle": {
-      switch (action.type) {
+      switch (event.type) {
         case "inputChange":
           return {
             name: "idle",
             ctx: {
-              username: action.payload,
+              username: event.payload,
             },
           };
         case "loginRequest":
@@ -57,7 +57,7 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
       }
     }
     case "loading":
-      switch (action.type) {
+      switch (event.type) {
         case "loginSuccess":
           return {
             name: "success",
@@ -65,7 +65,7 @@ export const reducer: Reducer<State, Action, Context> = (state, action) => {
         case "loginError":
           return {
             name: "error",
-            message: action.payload.message,
+            message: event.payload.message,
           };
         default:
           return state;
@@ -126,19 +126,19 @@ describe("useMachine", () => {
   });
 
   it("re-renders only when state changes", async () => {
-    type Action = { type: "ping" } | { type: "pong" };
+    type Event = { type: "ping" } | { type: "pong" };
     type State = { name: "ping" } | { name: "pong" };
-    const reducer: Reducer<State, Action> = (state, action) => {
+    const reducer: Reducer<State, Event> = (state, event) => {
       switch (state.name) {
         case "ping":
-          switch (action.type) {
+          switch (event.type) {
             case "pong":
               return { name: "pong" };
             default:
               return state;
           }
         case "pong":
-          switch (action.type) {
+          switch (event.type) {
             case "ping":
               return { name: "ping" };
             default:
@@ -193,12 +193,12 @@ describe("useMachine", () => {
   });
 
   it("async context changes work along side state changes", async () => {
-    type Action = { type: "increment" } | { type: "asyncIncrement" };
+    type Event = { type: "increment" } | { type: "asyncIncrement" };
     type State = { name: "default" };
     type Context = { counter: number };
 
-    const reducer: Reducer<State, Action, Context> = (state, action) => {
-      switch (action.type) {
+    const reducer: Reducer<State, Event, Context> = (state, event) => {
+      switch (event.type) {
         case "increment":
           return { name: "default", ctx: { counter: state.ctx.counter + 1 } };
         case "asyncIncrement":
@@ -264,17 +264,17 @@ describe("useMachine", () => {
   });
 
   it("discards results of effects that were fired before the state changed", async () => {
-    type Action =
+    type Event =
       | { type: "load" }
       | { type: "ready" }
       | { type: "reset" }
       | { type: "cancel" };
     type State = { name: "idle" } | { name: "loading" } | { name: "loaded" };
 
-    const reducer: Reducer<State, Action> = (state, action) => {
+    const reducer: Reducer<State, Event> = (state, event) => {
       switch (state.name) {
         case "idle": {
-          switch (action.type) {
+          switch (event.type) {
             case "load":
               return [
                 { name: "loading" },
@@ -290,7 +290,7 @@ describe("useMachine", () => {
           }
         }
         case "loading": {
-          switch (action.type) {
+          switch (event.type) {
             case "ready":
               return { name: "loaded" };
             case "reset":
@@ -301,7 +301,7 @@ describe("useMachine", () => {
           }
         }
         case "loaded": {
-          switch (action.type) {
+          switch (event.type) {
             case "reset":
               return { name: "idle" };
             default:

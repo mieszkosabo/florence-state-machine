@@ -1,4 +1,4 @@
-export type Effect<Action> = () => Promise<Action>;
+export type Effect<Event> = () => Promise<Event>;
 
 export type StateShape = Exclude<
   {
@@ -9,23 +9,23 @@ export type StateShape = Exclude<
 
 export type ContextShape = Record<string, unknown>;
 
-export type ActionShape = {
+export type EventShape = {
   type: string;
   payload?: any;
 };
 
 export type Reducer<
   State extends StateShape,
-  Action extends ActionShape,
+  Event extends EventShape,
   Context extends ContextShape = Record<string, unknown>
 > = (
   state: State & { ctx: Context },
-  action: Action
+  event: Event
 ) =>
   | State
   | (State & { ctx: Context })
-  | [State, Effect<Action>]
-  | [State & { ctx: Context }, Effect<Action>];
+  | [State, Effect<Event>]
+  | [State & { ctx: Context }, Effect<Event>];
 
 type AnyFun = (...args: any[]) => any;
 
