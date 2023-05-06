@@ -12,6 +12,7 @@ import {
   createChannel,
   createEffectsExecutor,
   createExecutor,
+  createInitialStoreSnapshot,
   createStore,
 } from "./executors";
 import { useSubscription } from "./utils";
@@ -50,7 +51,8 @@ export const useMachine = <
 
   const state = useSyncExternalStore(
     store.current.subscribe,
-    store.current.getStore
+    store.current.getStore,
+    () => createInitialStoreSnapshot(initialState, initialContext ?? ({} as C))
   );
 
   const fullState = { ...state.state, ctx: state.ctx };

@@ -30,15 +30,23 @@ const getNewId = (oldId: number) => {
   return oldId + 1;
 };
 
+export const createInitialStoreSnapshot = <
+  St extends StateShape,
+  C extends ContextShape
+>(
+  initialState: St,
+  initialCtx: C
+) => ({
+  _id: 0,
+  state: initialState,
+  ctx: initialCtx,
+});
+
 export const createStore = <St extends StateShape, C extends ContextShape>(
   initialState: St,
   initialCtx: C
 ) => {
-  let store = {
-    _id: 0,
-    state: initialState,
-    ctx: initialCtx,
-  };
+  let store = createInitialStoreSnapshot(initialState, initialCtx);
 
   const subscribers = new Set<() => void>();
   const notifySubscribers = () => {
