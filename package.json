@@ -1,6 +1,6 @@
 {
   "name": "florence-state-machine",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
   "main": "dist/florence-state-machine.cjs.js",
   "module": "dist/florence-state-machine.esm.js",
