@@ -30,7 +30,7 @@ const getNewId = (oldId: number) => {
   return oldId + 1;
 };
 
-export const createInitialStoreSnapshot = <
+const createInitialStoreSnapshot = <
   St extends StateShape,
   C extends ContextShape
 >(
