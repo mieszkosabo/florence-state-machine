@@ -1,5 +1,10 @@
 import { Button, HStack, Heading, Text } from "@chakra-ui/react";
-import { Effect, Reducer, useMachine } from "florence-state-machine";
+import {
+  Effect,
+  Reducer,
+  createMachine,
+  useMachine,
+} from "florence-state-machine";
 import { P, match } from "ts-pattern";
 
 type Event =
@@ -40,14 +45,16 @@ const reducer: Reducer<State, Event, Context> = (state, event) =>
     ])
     .otherwise(() => state);
 
+const stopWatchMachine = createMachine({
+  reducer,
+  initialState: { name: "idle" } as const,
+  initialContext: {
+    currentTime: 0,
+  },
+});
+
 export const Stopwatch = () => {
-  const { state, send, matches } = useMachine(
-    reducer,
-    { name: "idle" } as const,
-    {
-      currentTime: 0,
-    }
-  );
+  const { state, send, matches } = useMachine(stopWatchMachine);
 
   return (
     <div>
