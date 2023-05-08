@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { Reducer, useMachine } from "../core";
+import { Reducer, createMachine, useMachine } from "../core";
 
 type State<Value> =
   | {
@@ -101,9 +101,12 @@ export function usePromise<V>(
   promise: () => Promise<V>,
   config = { autoInvoke: true }
 ) {
-  const { state, send, matches } = useMachine(reducer(promise), {
-    name: "idle",
-  });
+  const { state, send, matches } = useMachine(
+    createMachine({
+      reducer: reducer(promise),
+      initialState: { name: "idle" } as const,
+    })
+  );
 
   useEffect(() => {
     if (config.autoInvoke) {

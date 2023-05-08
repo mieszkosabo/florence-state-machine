@@ -1,4 +1,4 @@
-import { useMachine } from "florence-state-machine";
+import { createMachine, useMachine } from "florence-state-machine";
 import type { Reducer } from "florence-state-machine";
 import { sleep } from "../utils";
 import { P, match } from "ts-pattern";
@@ -107,6 +107,9 @@ export const reducer: Reducer<State, Event, Context> = (state, event) => {
   }
 };
 
+const loginMachine = createMachine({ reducer, initialState: { name: "idle" } });
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const reducerWithTsPattern: Reducer<State, Event, Context> = (state, event) =>
   // with ts-pattern we can match simultaneously on state.name and event.type!
   match<[State["name"], Event], ReturnType<Reducer<State, Event, Context>>>([
@@ -150,9 +153,7 @@ const reducerWithTsPattern: Reducer<State, Event, Context> = (state, event) =>
     .otherwise(() => state);
 
 function LoginPage() {
-  const { state, send, matches } = useMachine(reducerWithTsPattern, {
-    name: "idle",
-  });
+  const { state, send, matches } = useMachine(loginMachine);
 
   if (state.name === "success") {
     return (

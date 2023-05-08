@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { describe, it, expect, vi, assertType } from "vitest";
 import { Reducer } from "./types";
-import { useMachine } from "./use-machine";
+import { createMachine, useMachine } from "./use-machine";
 import { render, renderHook, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -77,13 +77,15 @@ export const reducer: Reducer<State, Event, Context> = (state, event) => {
 
 describe("useMachine", () => {
   const user = userEvent.setup();
+  const machine = createMachine({
+    reducer,
+    initialState: { name: "idle" } as const,
+  });
   it("example with a single effect", async () => {
     const fn = vi.fn();
 
     function App() {
-      const { state, send } = useMachine(reducer, {
-        name: "idle",
-      });
+      const { state, send } = useMachine(machine);
 
       useEffect(() => {
         // count number of re-renders
@@ -150,9 +152,13 @@ describe("useMachine", () => {
     };
 
     const fn = vi.fn();
+    const machine = createMachine({
+      reducer,
+      initialState: { name: "ping" } as const,
+    });
 
     function App() {
-      const result = useMachine(reducer, { name: "ping" } as const);
+      const result = useMachine(machine);
       useEffect(() => {
         // call the function to track the number of re-renders
         fn();
@@ -214,14 +220,16 @@ describe("useMachine", () => {
       }
     };
 
+    const machine = createMachine({
+      reducer,
+      initialState: {
+        name: "default",
+      } as const,
+      initialContext: { counter: 0 },
+    });
+
     function App() {
-      const result = useMachine(
-        reducer,
-        {
-          name: "default",
-        } as const,
-        { counter: 0 }
-      );
+      const result = useMachine(machine);
 
       return (
         <div>
@@ -311,8 +319,13 @@ describe("useMachine", () => {
       }
     };
 
+    const machine = createMachine({
+      reducer,
+      initialState: { name: "idle" } as const,
+    });
+
     function App() {
-      const result = useMachine(reducer, { name: "idle" } as const);
+      const result = useMachine(machine);
 
       return (
         <div>
@@ -363,10 +376,12 @@ describe("useMachine", () => {
   });
 
   it("basic matches", async () => {
+    const machine = createMachine({
+      reducer,
+      initialState: { name: "idle" } as const,
+    });
     function App() {
-      const { state, send, matches } = useMachine(reducer, {
-        name: "idle",
-      });
+      const { state, send, matches } = useMachine(machine);
 
       return (
         <div>
@@ -410,11 +425,7 @@ describe("useMachine", () => {
   });
 
   it("matches has correct type", () => {
-    const { result } = renderHook(() =>
-      useMachine(reducer, {
-        name: "idle",
-      })
-    );
+    const { result } = renderHook(() => useMachine(machine));
     const { matches } = result.current;
 
     // matches with no branches always gives us null

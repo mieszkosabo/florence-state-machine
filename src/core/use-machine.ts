@@ -16,16 +16,46 @@ import {
 } from "./executors";
 import { useSubscription } from "./utils";
 
+export type CreateMachine = <
+  St extends StateShape,
+  Ev extends EventShape,
+  C extends ContextShape
+>(arg: {
+  reducer: Reducer<St, Ev, C>;
+  initialState: St;
+  initialContext?: C;
+}) => Machine<St, Ev, C>;
+
+export const createMachine: CreateMachine = ({
+  reducer,
+  initialState,
+  initialContext,
+}) => ({
+  reducer,
+  initialState,
+  initialContext,
+});
+
+export type Machine<
+  St extends StateShape,
+  Ev extends EventShape,
+  C extends ContextShape
+> = {
+  reducer: Reducer<St, Ev, C>;
+  initialState: St;
+  initialContext?: C;
+};
+
 export const useMachine = <
   St extends StateShape,
   Ev extends EventShape,
   C extends ContextShape
 >(
-  reducer: Reducer<St, Ev, C>,
-  initialState: St,
-  initialContext?: C
+  machine: Machine<St, Ev, C>
 ) => {
-  const store = useRef(createStore(initialState, initialContext ?? ({} as C)));
+  const store = useRef(
+    createStore(machine.initialState, machine.initialContext ?? ({} as C))
+  );
   const actionsChannel = useRef(createChannel<Ev>());
   const effectsChannel = useRef(createChannel<Effect<Ev>>());
 
@@ -37,11 +67,11 @@ export const useMachine = <
     () =>
       createExecutor(
         store.current,
-        reducer,
+        machine.reducer,
         actionsChannel.current,
         effectsChannel.current
       ),
-    [reducer]
+    [machine.reducer]
   );
 
   useSubscription(() =>

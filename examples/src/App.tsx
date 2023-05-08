@@ -11,11 +11,13 @@ import LoginPage from "./examples/LoginPage";
 import { UsePromiseExample } from "./examples/UsePromiseExample";
 import { SunIcon, MoonIcon } from "@chakra-ui/icons";
 import { Stopwatch } from "./examples/Stopwatch";
+import { TicTacToe } from "./examples/TicTacToe";
 
 const EXAMPLES: Record<string, () => JSX.Element> = {
   "login-page": LoginPage,
   "use-promise": UsePromiseExample,
   stopwatch: Stopwatch,
+  "tic-tac-toe": TicTacToe,
 };
 
 const useExample = () => {
@@ -38,7 +40,9 @@ function App() {
         borderBottomColor="gray.400"
         align="center"
       >
-        <Text>florence-state-machine</Text>
+        <Text fontWeight="bold" fontFamily="courier, monospace">
+          florence-state-machine
+        </Text>
         <Spacer />
         <IconButton
           mr={2}
