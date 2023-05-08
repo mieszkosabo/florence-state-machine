@@ -36,7 +36,6 @@
     "vitest": "^0.30.0"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "rxjs": "^7.8.0"
+    "react": "^18.2.0"
   }
 }
