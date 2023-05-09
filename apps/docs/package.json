@@ -1,0 +1,26 @@
+{
+  "name": "@florence-state-machine/docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "start": "next start ",
+    "dev": "next dev -p 3002",
+    "lint": "next lint",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next"
+  },
+  "dependencies": {
+    "@florence-state-machine/core": "workspace:*",
+    "next": "latest",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@florence-state-machine/tsconfig": "workspace:*",
+    "@types/node": "^17.0.12",
+    "@types/react": "^18.0.22",
+    "@types/react-dom": "^18.0.7",
+    "eslint-config-florence-state-machine": "workspace:*",
+    "typescript": "^4.5.4"
+  }
+}

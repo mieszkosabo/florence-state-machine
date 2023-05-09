@@ -71,19 +71,19 @@ Florence state machine is not a global state manager, but a lightweight tool to 
 - npm
 
 ```sh
-npm i @florence-state-machine/core
+npm i florence-state-machine
 ```
 
 - yarn
 
 ```sh
-yarn add @florence-state-machine/core
+yarn add florence-state-machine
 ```
 
 - pnpm
 
 ```sh
-pnpm add @florence-state-machine/core
+pnpm add florence-state-machine
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
