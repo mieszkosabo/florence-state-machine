@@ -1,5 +1,9 @@
 import { Button, HStack, Heading, Text } from "@chakra-ui/react";
-import { Reducer, createMachine, useMachine } from "florence-state-machine";
+import {
+  Reducer,
+  createMachine,
+  useMachine,
+} from "@florence-state-machine/core";
 import { P, match } from "ts-pattern";
 
 type Board = ("x" | "o" | " ")[][];

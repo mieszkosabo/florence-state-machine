@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePromise } from "florence-state-machine";
+import { usePromise } from "@florence-state-machine/use-promise";
 import { Button, Flex, Heading, Input, Text } from "@chakra-ui/react";
 
 const echo = (value: string): Promise<string> =>

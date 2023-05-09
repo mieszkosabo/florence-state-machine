@@ -4,7 +4,7 @@ import {
   Reducer,
   createMachine,
   useMachine,
-} from "florence-state-machine";
+} from "@florence-state-machine/core";
 import { P, match } from "ts-pattern";
 
 type Event =

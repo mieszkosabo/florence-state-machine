@@ -10,10 +10,17 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.0.19",
+    "@chakra-ui/react": "^2.6.1",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
     "@florence-state-machine/core": "workspace:*",
+    "@florence-state-machine/use-promise": "workspace:*",
+    "framer-motion": "^10.12.9",
     "next": "latest",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "ts-pattern": "^4.3.0"
   },
   "devDependencies": {
     "@florence-state-machine/tsconfig": "workspace:*",

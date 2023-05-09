@@ -1,6 +1,6 @@
-import { createMachine, useMachine } from "florence-state-machine";
-import type { Reducer } from "florence-state-machine";
-import { sleep } from "../utils";
+import { createMachine, useMachine } from "@florence-state-machine/core";
+import type { Reducer } from "@florence-state-machine/core";
+import { sleep } from "../utils/sleep";
 import { P, match } from "ts-pattern";
 import {
   Button,
