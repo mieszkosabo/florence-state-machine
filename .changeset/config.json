@@ -6,5 +6,6 @@
   "linked": [],
   "access": "public",
   "updateInternalDependencies": "patch",
-  "ignore": ["@florence-state-machine/docs"]
+  "ignore": ["@florence-state-machine/docs"],
+  "baseBranch": "main"
 }
