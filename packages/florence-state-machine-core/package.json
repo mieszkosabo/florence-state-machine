@@ -1,0 +1,39 @@
+{
+  "name": "@florence-state-machine/core",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "license": "MIT",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --external react",
+    "dev": "tsup src/index.ts --format esm,cjs --watch --dts --external react",
+    "test": "vitest run",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "devDependencies": {
+    "@florence-state-machine/tsconfig": "workspace:*",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-florence-state-machine": "workspace:*",
+    "jsdom": "^22.0.0",
+    "react": "^18.2.0",
+    "tsup": "^5.10.1",
+    "typescript": "^4.5.3",
+    "vite": "^4.3.5",
+    "vitest": "^0.31.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
