@@ -1,4 +1,4 @@
-export type Effect<Event> = () => Promise<Event>;
+export type Effect<Event> = () => Promise<Event | void> | void;
 
 export type StateShape = Exclude<
   {

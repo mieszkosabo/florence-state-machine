@@ -152,9 +152,10 @@ export const createEffectsExecutor = <
 ) => {
   return effectsChannel.subscribe((effect) => {
     const currentId = store.getStore()._id;
-    effect()
+
+    Promise.resolve(effect())
       .then((a) => {
-        if (currentId === store.getStore()._id) {
+        if (a && currentId === store.getStore()._id) {
           send(a);
         }
       })
