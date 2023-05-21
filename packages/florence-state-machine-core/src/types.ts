@@ -1,4 +1,25 @@
-export type Effect<Event> = () => Promise<Event | void> | void;
+export type Observable<T> = {
+  subscribe: (cb: (val: T) => void) => () => void;
+};
+
+export const isObservable = <Event>(
+  arg: EffectReturnType<Event>
+): arg is Observable<Event> | Promise<Observable<Event>> => {
+  if (!arg) {
+    return false;
+  }
+  return typeof arg === "object" && "subscribe" in arg;
+};
+
+type EffectReturnType<Event> = ReturnType<Effect<Event>>;
+
+export type Effect<Event> =
+  | (() => Event)
+  | (() => Promise<Event>)
+  | (() => void)
+  | (() => Promise<void>)
+  | (() => Observable<Event>)
+  | (() => Promise<Observable<Event>>);
 
 export type StateShape = Exclude<
   {

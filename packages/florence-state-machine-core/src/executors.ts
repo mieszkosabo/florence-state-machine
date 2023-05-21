@@ -1,4 +1,11 @@
-import { EventShape, ContextShape, Effect, Reducer, StateShape } from "./types";
+import {
+  EventShape,
+  ContextShape,
+  Effect,
+  Reducer,
+  StateShape,
+  isObservable,
+} from "./types";
 import { isDifferentObjShallow, isDifferentStateShallow } from "./utils";
 
 export type Channel<Message> = {
@@ -155,7 +162,19 @@ export const createEffectsExecutor = <
 
     Promise.resolve(effect())
       .then((a) => {
-        if (a && currentId === store.getStore()._id) {
+        // observable
+        if (isObservable(a)) {
+          const unsubscribe = a.subscribe((ev) => {
+            if (currentId === store.getStore()._id) {
+              // keep sending emitted events until the state changes
+              send(ev);
+            } else {
+              // is the state changed, then unsubscribe
+              unsubscribe();
+            }
+          });
+        } // event
+        else if (a && currentId === store.getStore()._id) {
           send(a);
         }
       })

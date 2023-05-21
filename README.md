@@ -18,6 +18,8 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a> -->
 
+## ⚠️ NOTE: DOCS ARE WORK IN PROGRESS
+
 <h3 align="center">florence-state-machine</h3>
 
   <p align="center">
@@ -140,8 +142,23 @@ export type Context = {
 
 ### Effects
 
-Effects are async functions that return an event. Their signature is `() => Promise<Event>`. They are used to describe any async operations
-that can happen in our system. In our case we will need to make a request to the auth server, so we will define an effect for that:
+Apart from returning just a new state, you can also return an effect.
+Effect is a function that should be executed by the library's executor, and its results
+(if any) should be sent back to the machine.
+
+`florence-state-machine` supports a few different types of effects. Executor will handle the effect's result based on its type. Let's go through them and see how they can be used.
+
+Effects types:
+
+- `() => void` - This is useful for operations that don't return anything. For example, we could use it to log something to the console.
+- `() => Event` - This is the most common type of effect. Upon executing the effect, the executor will send the returned event back to the machine.
+- `() => Observable<Event>` - Effects can also return a `observable` of Events. When
+  a observable emits an `Event`, it will be sent back to the machine. **Executor will
+  subscribe to the observable and handle its values until it completes, or, if the the state changes, it will unsubscribe from it.**
+
+> Note: async variants of the aboves signatures are also supported!
+
+In our example we will need to make a request to the auth server, so we will define an effect for that:
 
 ```ts
 export const loginEffect = async (username: string): Promise<Event> => {

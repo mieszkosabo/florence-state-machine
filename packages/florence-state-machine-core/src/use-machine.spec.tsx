@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { describe, it, expect, vi, assertType } from "vitest";
-import { Reducer } from "./types";
+import { Observable, Reducer } from "./types";
 import { createMachine, useMachine } from "./use-machine";
 import { render, renderHook, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -461,5 +461,99 @@ describe("useMachine", () => {
       // @ts-expect-error - this branch doesn't match any state name
       asdfasdf: () => true,
     });
+  });
+
+  it("effects can return observables", async () => {
+    type State = { name: "idle" } | { name: "counting" };
+
+    type Event =
+      | { type: "START_COUNTING" }
+      | { type: "STOP_COUNTING" }
+      | { type: "INC" };
+
+    type Context = { counter: number };
+
+    const countingObservable = (): Observable<Event> => {
+      return {
+        subscribe: (cb) => {
+          const intervalId = setInterval(() => cb({ type: "INC" }), 15);
+
+          return () => clearInterval(intervalId);
+        },
+      };
+    };
+
+    const reducer: Reducer<State, Event, Context> = (state, event) => {
+      switch (state.name) {
+        case "idle": {
+          if (event.type === "START_COUNTING") {
+            return [{ name: "counting" }, () => countingObservable()];
+          } else {
+            return state;
+          }
+        }
+        case "counting": {
+          if (event.type === "STOP_COUNTING") {
+            return { name: "idle" };
+          } else if (event.type === "INC") {
+            return {
+              name: "counting",
+              ctx: {
+                counter: state.ctx.counter + 1,
+              },
+            };
+          } else {
+            return state;
+          }
+        }
+      }
+    };
+
+    const machine = createMachine({
+      reducer,
+      initialState: { name: "idle" } as const,
+      initialContext: { counter: 0 },
+    });
+
+    function App() {
+      const result = useMachine(machine);
+
+      return (
+        <div>
+          <div data-testid="counter">{result.state.ctx.counter}</div>
+          <button
+            data-testid="start"
+            onClick={() => result.send({ type: "START_COUNTING" })}
+          >
+            START
+          </button>
+          <button
+            data-testid="stop"
+            onClick={() => result.send({ type: "STOP_COUNTING" })}
+          >
+            STOP
+          </button>
+        </div>
+      );
+    }
+
+    const { findByTestId } = render(<App />);
+    const startBtn = await findByTestId("start");
+    const stopBtn = await findByTestId("stop");
+    const state = await findByTestId("counter");
+
+    // initial state
+    expect(state.textContent).toBe("0");
+
+    // check that subscribing works
+    await user.click(startBtn);
+    await sleep(15 * 5);
+    const currentCounter = Number(state.textContent);
+    expect(currentCounter).toBeGreaterThanOrEqual(4);
+
+    // check that unsubscribing on state change works
+    await user.click(stopBtn);
+    await sleep(15 * 5);
+    expect(currentCounter).toBeGreaterThanOrEqual(4);
   });
 });
