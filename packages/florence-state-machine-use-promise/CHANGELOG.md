@@ -1,5 +1,12 @@
 # @florence-state-machine/use-promise
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [40a3c16]
+  - @florence-state-machine/core@0.3.0
+
 ## 0.1.2
 
 ### Patch Changes

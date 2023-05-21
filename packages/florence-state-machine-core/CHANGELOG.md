@@ -1,5 +1,11 @@
 # @florence-state-machine/core
 
+## 0.3.0
+
+### Minor Changes
+
+- 40a3c16: Added support for returning an observable from the effect
+
 ## 0.2.0
 
 ### Minor Changes
