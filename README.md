@@ -14,9 +14,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <!-- <a href="https://github.com/mieszkosabo/florence-state-machine">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a> -->
+  <a href="https://github.com/mieszkosabo/florence-state-machine">
+    <img src="assets/FSM_full_color.jpg" alt="Logo" height="200">
+  </a>
 
 ## ⚠️ NOTE: DOCS ARE WORK IN PROGRESS
 
